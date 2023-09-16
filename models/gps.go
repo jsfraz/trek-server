@@ -12,7 +12,7 @@ const iso8601RegexPattern = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d
 type GNSSData struct {
 	Latitude  float64 `json:"latitude" validate:"latitude,required"`
 	Longitude float64 `json:"longitude" validate:"longitude,required"`
-	Speed     float64 `json:"speed" validate:"min=0,required"`
+	Speed     float64 `json:"speed" validate:"min=0"`
 	Timestamp string  `json:"timestamp" validate:"required"`
 }
 
