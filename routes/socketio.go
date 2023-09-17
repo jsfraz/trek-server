@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"jsfraz/trek-backend/models"
+	"jsfraz/trek-server/models"
 	"log"
 
 	socketio "github.com/googollee/go-socket.io"

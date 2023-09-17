@@ -25,8 +25,8 @@ func NewRouter() (*fizz.Fizz, error) {
 
 	// OpenApi info
 	infos := &openapi.Info{
-		Title:       "Trek backend.",
-		Description: "Best choice for tracking your bike.",
+		Title:       "Trek server",
+		Description: "Best choice for tracking your motorcycle or whatever.",
 		Version:     "1.0.0",
 	}
 

@@ -1,4 +1,4 @@
-module jsfraz/trek-backend
+module jsfraz/trek-server
 
 go 1.21.0
 

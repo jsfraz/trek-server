@@ -1,7 +1,7 @@
 package main
 
 import (
-	"jsfraz/trek-backend/routes"
+	"jsfraz/trek-server/routes"
 	"log"
 	"net/http"
 
