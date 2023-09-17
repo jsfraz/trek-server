@@ -13,7 +13,10 @@ import (
 func NewSocketIOServer() *socketio.Server {
 	server := socketio.NewServer(nil)
 
+	// TODO comments
+
 	server.OnConnect("/", func(s socketio.Conn) error {
+		// TODO get API key from query, check key, get device from database
 		device := "test"
 		s.SetContext(device)
 		log.Println("Device " + device + " connected.")

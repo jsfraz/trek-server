@@ -38,6 +38,17 @@ func NewRouter() (*fizz.Fizz, error) {
 
 	// TODO setup other routes
 
+	// TODO login
+	// TODO create user
+	// TODO get user(s)
+	// TODO delete user(s)
+	// TODO add tracker and generate API key
+	// TODO regenerate API key
+	// TODO get tracker(s)
+	// TODO delete tracker(s)
+
+	// TODO GNSS data
+
 	if len(fizz.Errors()) != 0 {
 		return nil, fmt.Errorf("errors: %v", fizz.Errors())
 	}
