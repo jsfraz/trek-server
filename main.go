@@ -1,14 +1,54 @@
 package main
 
 import (
+	"jsfraz/trek-server/database"
+	"jsfraz/trek-server/models"
 	"jsfraz/trek-server/routes"
+	"jsfraz/trek-server/utils"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
+	// check Gin envs
+	utils.CheckGinModeEnv()
+	// check Postgres envs
+	utils.CheckPostgresEnvs()
+	// Postgres database
+	connStr := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("POSTGRES_SERVER") + ":" + os.Getenv("POSTGRES_PORT") + "/" + os.Getenv("POSTGRES_DB")
+	postgres, err := gorm.Open(postgres.Open(connStr), &gorm.Config{Logger: logger.Default.LogMode(utils.GetGormLogLevel())})
+	if err != nil {
+		panic(err)
+	}
+	// database schema migration
+	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{})
+	if err != nil {
+		panic(err)
+	}
+	// set database client in singleton
+	singleton := utils.GetSingleton()
+	singleton.PostgresDb = *postgres
+	// superuser envs
+	utils.CheckSuperuserEnvs()
+	// check if superuser exists
+	exists, _ := database.UserExistsByUsername(os.Getenv("SUPERUSER_USERNAME"))
+	if !exists {
+		// create superuser
+		u, _ := models.NewUser(os.Getenv("SUPERUSER_USERNAME"), os.Getenv("SUPERUSER_PASSWORD"), true)
+		err = database.CreateSuperuser(*u)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	// access token envs
+	utils.CheckAccessTokenEnvs()
+
 	// get Socket.IO instance
 	socketio := routes.NewSocketIOServer()
 	// get router

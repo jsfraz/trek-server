@@ -6,6 +6,10 @@ import (
 )
 
 // Returns array of Fizz Operation option with summary and error responses
+//
+//	@param summary
+//	@param useSecurity
+//	@return []fizz.OperationOption
 func CreateOperationOption(summary string, useSecurity bool) []fizz.OperationOption {
 	var option []fizz.OperationOption
 	option = append(option, fizz.Summary(summary)) // append summary
