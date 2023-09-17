@@ -20,6 +20,17 @@ func NewRouter() (*fizz.Fizz, error) {
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 	engine.Use(cors.New(config))
 
+	// html
+	engine.LoadHTMLGlob("html/*.html")
+	// index
+	engine.GET("/", func(c *gin.Context) {
+		c.HTML(200, "index.html", nil)
+	})
+	// error 404
+	engine.NoRoute(func(c *gin.Context) {
+		c.HTML(404, "404.html", nil)
+	})
+
 	// fizz instance
 	fizz := fizz.NewFromEngine(engine)
 
