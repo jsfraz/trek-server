@@ -1,0 +1,12 @@
+version: "3.3"
+name: trek-swagger-ui
+services:
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: swagger-ui
+    restart: always
+    ports:
+      - "8082:8080"
+    environment:
+      - SWAGGER_JSON_URL=http://localhost:8080/api/openapi.json
+      - VALIDATOR_URL=none

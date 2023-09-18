@@ -51,3 +51,12 @@ func CreateSuperuser(user models.User) error {
 	// commit transaction
 	return tx.Commit().Error
 }
+
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("username = ?", username).Attrs(models.User{}).FirstOrInit(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

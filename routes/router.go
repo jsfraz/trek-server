@@ -48,6 +48,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	grp.GET("openapi.json", nil, fizz.OpenAPI(infos, "json"))
 
 	// TODO setup other routes
+	AuthRoute(grp)
 
 	// TODO login
 	// TODO create user
