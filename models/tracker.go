@@ -5,7 +5,7 @@ type Tracker struct {
 	Name string `json:"name" validate:"required"`
 }
 
-// Initialize new tracker.
+// Initialize new tracker instance.
 //
 //	@param name
 //	@return *Device

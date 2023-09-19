@@ -39,7 +39,7 @@ func CreateSuperuser(user models.User) error {
 	// transaction
 	tx := utils.GetSingleton().PostgresDb.Begin()
 	// delete superusers
-	if err := tx.Table("users").Where("superuser = ?", true).Delete(&models.User{}).Error; err != nil {
+	if err := tx.Where("superuser = ?", true).Delete(&models.User{}).Error; err != nil {
 		tx.Rollback() // rollback the transaction if an error occurs
 		return err
 	}
@@ -52,6 +52,11 @@ func CreateSuperuser(user models.User) error {
 	return tx.Commit().Error
 }
 
+// Get user by username.
+//
+//	@param username
+//	@return *models.User
+//	@return error
 func GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
 	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("username = ?", username).Attrs(models.User{}).FirstOrInit(&user).Error
@@ -59,4 +64,95 @@ func GetUserByUsername(username string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+// Check if user with given ID exists.
+//
+//	@param id
+//	@return bool
+//	@return error
+func UserExistsById(id uint64) (bool, error) {
+	var count int64
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("id = ?", id).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count == 1, nil
+}
+
+// Get user by ID.
+//
+//	@param id
+//	@return *models.User
+//	@return error
+func GetUserById(id uint64) (*models.User, error) {
+	var user models.User
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// Check if user with given ID is superuser.
+//
+//	@param id
+//	@return bool
+//	@return error
+func IsSuperuser(id uint64) (bool, error) {
+	var user models.User
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Select("superuser").Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return false, nil
+	}
+	return user.Superuser, nil
+}
+
+// Get all users.
+//
+//	@return *[]models.User
+//	@return error
+func GetAllUsers() (*[]models.User, error) {
+	var users []models.User = []models.User{}
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Order("id ASC").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return &users, nil
+}
+
+// Delete users with given IDs.
+//
+//	@param ids
+//	@return error
+func DeleteUsers(ids []uint64) error {
+	return utils.GetSingleton().PostgresDb.Where("id IN ?", ids).Delete(&models.User{}).Error
+}
+
+// Update user.
+//
+//	@param id
+//	@param username
+//	@param password
+//	@return error
+func UpdateUser(id uint64, username string, password string) error {
+	var user models.User
+	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return err
+	}
+	// username
+	user.Username = username
+	// password
+	if password != "" {
+		if len(password) >= 8 && len(password) <= 64 {
+			err := user.SetPassword(password)
+			// error
+			if err != nil {
+				return err
+			}
+		}
+	}
+	// update
+	return utils.GetSingleton().PostgresDb.Save(&user).Error
 }

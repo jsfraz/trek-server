@@ -6,6 +6,7 @@ import (
 	"jsfraz/trek-server/database"
 	"jsfraz/trek-server/models"
 	"jsfraz/trek-server/utils"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -50,4 +51,160 @@ func Login(c *gin.Context, login *models.Login) (*models.LoginResponse, error) {
 		return nil, err
 	}
 	return models.NewLoginResponse(accessToken), nil
+}
+
+// Handler for creating a new user in the database. The following items are checked:
+// 1) To create a user, the ID of the user who wants to make a request must be the same as the superuser ID (if not, return status 401).
+// 2) The username must not be taken (if not, return status 409).
+//
+//	@param c
+//	@param register
+//	@return error
+func CreateUser(c *gin.Context, register *models.CreateUser) error {
+	// check for superuser
+	userId, _ := c.Get("userId")
+	superuser, err := database.IsSuperuser(userId.(uint64))
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	if !superuser {
+		c.AbortWithStatus(401)
+		return err
+	}
+	// check if username is taken
+	taken, err := database.UserExistsByUsername(register.Username)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	if taken {
+		c.AbortWithStatus(409)
+		return err
+	}
+	// initialize user
+	newUser, err := models.NewUser(register.Username, register.Password, false)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	// insert
+	err = database.InsertUser(*newUser)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	return nil
+}
+
+// Returns the user profile by user ID. The ID is obtained from the access token.
+//
+//	@param c
+//	@return *models.User
+//	@return error
+func WhoAmI(c *gin.Context) (*models.User, error) {
+	// user id
+	userId, _ := c.Get("userId")
+	// get user
+	user, err := database.GetUserById(userId.(uint64))
+	if err != nil {
+		c.AbortWithStatus(500)
+		return nil, err
+	}
+	return user, nil
+}
+
+// Get all users.
+//
+//	@param c
+//	@return *[]models.User
+//	@return error
+func GetAllUsers(c *gin.Context) (*[]models.User, error) {
+	// check for superuser
+	userId, _ := c.Get("userId")
+	superuser, err := database.IsSuperuser(userId.(uint64))
+	if err != nil {
+		c.AbortWithStatus(500)
+		return nil, err
+	}
+	if !superuser {
+		c.AbortWithStatus(401)
+		return nil, err
+	}
+	// get users
+	users, err := database.GetAllUsers()
+	if err != nil {
+		c.AbortWithStatus(500)
+		return nil, err
+	}
+	return users, nil
+}
+
+// Delete users.
+//
+//	@param c
+//	@param ids
+//	@return error
+func DeleteUsers(c *gin.Context, ids *models.Ids) error {
+	// check for superuser
+	userId, _ := c.Get("userId")
+	superuser, err := database.IsSuperuser(userId.(uint64))
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	if !superuser {
+		c.AbortWithStatus(401)
+		return err
+	}
+	// check if slice contains superuser's id
+	if slices.Contains(ids.Ids, userId.(uint64)) {
+		c.AbortWithStatus(500)
+		return err
+	}
+	// delete users
+	err = database.DeleteUsers(ids.Ids)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	return nil
+}
+
+// Update user.
+//
+//	@param c
+//	@param request
+//	@return error
+func UpdateUser(c *gin.Context, request *models.UpdateUser) error {
+	// check fo superuser
+	userId, _ := c.Get("userId")
+	superuser, err := database.IsSuperuser(userId.(uint64))
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	if !superuser {
+		c.AbortWithStatus(401)
+		return err
+	}
+	// check if exists
+	exists, err := database.UserExistsById(request.Id)
+	// error
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	// not found
+	if !exists {
+		c.AbortWithStatus(500)
+		return nil
+	}
+	// update
+	err = database.UpdateUser(request.Id, request.Username, request.Password)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	return err
 }
