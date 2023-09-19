@@ -33,6 +33,16 @@ func NewRouter() (*fizz.Fizz, error) {
 
 	// fizz instance
 	fizz := fizz.NewFromEngine(engine)
+	// security
+	fizz.Generator().SetSecuritySchemes(map[string]*openapi.SecuritySchemeOrRef{
+		"bearerAuth": {
+			SecurityScheme: &openapi.SecurityScheme{
+				Type:         "http",
+				Scheme:       "bearer",
+				BearerFormat: "JWT",
+			},
+		},
+	})
 
 	// OpenApi info
 	infos := &openapi.Info{
@@ -49,11 +59,8 @@ func NewRouter() (*fizz.Fizz, error) {
 
 	// TODO setup other routes
 	AuthRoute(grp)
+	UserRoute(grp)
 
-	// TODO login
-	// TODO create user
-	// TODO get user(s)
-	// TODO delete user(s)
 	// TODO add tracker and generate API key
 	// TODO regenerate API key
 	// TODO get tracker(s)
