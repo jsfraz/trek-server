@@ -1,6 +1,6 @@
 package models
 
 type Login struct {
-	Username string `json:"username" validate:"required,alphanum"`
-	Password string `json:"password" validate:"required"`
+	Username string `query:"username" validate:"required,alphanum"`
+	Password string `query:"password" validate:"required"`
 }
