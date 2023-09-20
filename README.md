@@ -12,6 +12,7 @@
 | POSTGRES_DB           | trek                |
 | ACCESS_TOKEN_SECRET   | ...long text...     |
 | ACCESS_TOKEN_LIFESPAN | 111600              |
+| DEVICE_TOKEN_SECRET   | ...long text...     |
 | SUPERUSER_USERNAME    | root                |
 | SUPERUSER_PASSWORD    | 12345678            |
 
