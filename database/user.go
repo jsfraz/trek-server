@@ -94,20 +94,6 @@ func GetUserById(id uint64) (*models.User, error) {
 	return &user, nil
 }
 
-// Check if user with given ID is superuser.
-//
-//	@param id
-//	@return bool
-//	@return error
-func IsSuperuser(id uint64) (bool, error) {
-	var user models.User
-	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Select("superuser").Where("id = ?", id).First(&user).Error
-	if err != nil {
-		return false, nil
-	}
-	return user.Superuser, nil
-}
-
 // Get all users.
 //
 //	@return *[]models.User

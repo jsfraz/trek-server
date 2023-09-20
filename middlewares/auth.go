@@ -3,6 +3,7 @@ package middlewares
 import (
 	"jsfraz/trek-server/database"
 	"jsfraz/trek-server/utils"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,7 @@ import (
 //	@param c Gin context
 func Auth(c *gin.Context) {
 	// get access token from context
-	userId, err := utils.TokenValid(utils.ExtractTokenFromContext(c))
+	userId, err := utils.TokenValid(utils.ExtractTokenFromContext(c), os.Getenv("ACCESS_TOKEN_SECRET"))
 	// token není platný
 	if err != nil {
 		c.AbortWithStatus(401)
@@ -31,7 +32,13 @@ func Auth(c *gin.Context) {
 	if !exists {
 		c.AbortWithStatus(401)
 	}
+	// get user
+	user, err := database.GetUserById(userId)
+	if err != nil {
+		c.AbortWithStatus(500)
+		c.Error(err)
+	}
 	// set user to context, continue
-	c.Set("userId", userId)
+	c.Set("user", user)
 	c.Next()
 }
