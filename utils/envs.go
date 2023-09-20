@@ -84,10 +84,10 @@ func CheckSuperuserEnvs() {
 
 // Checks the environment variables for the access token.
 // If an incorrect value is set, the program exits.
-func CheckAccessTokenEnvs() {
+func CheckTokenEnvs() {
 	// kontrola
 	ok := true
-	// secret
+	// access token secret
 	if os.Getenv("ACCESS_TOKEN_SECRET") == "" {
 		ok = false
 		fmt.Println("Invalid access token secret.")
@@ -97,6 +97,11 @@ func CheckAccessTokenEnvs() {
 	if !matchAccess {
 		ok = false
 		fmt.Println("Invalid access token lifetime.")
+	}
+	// tracker token
+	if os.Getenv("TRACKER_TOKEN_SECRET") == "" {
+		ok = false
+		fmt.Println("Invalid tracker token secret.")
 	}
 	// result
 	if !ok {

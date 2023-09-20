@@ -47,7 +47,7 @@ func main() {
 		}
 	}
 	// access token envs
-	utils.CheckAccessTokenEnvs()
+	utils.CheckTokenEnvs()
 
 	// get Socket.IO instance
 	socketio := routes.NewSocketIOServer()

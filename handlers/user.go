@@ -45,7 +45,7 @@ func Login(c *gin.Context, login *models.Login) (*models.LoginResponse, error) {
 		}
 	}
 	// token
-	accessToken, err := utils.GenerateToken(user.Id)
+	accessToken, err := utils.GenerateAccessToken(user.Id)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return nil, err
@@ -62,15 +62,11 @@ func Login(c *gin.Context, login *models.Login) (*models.LoginResponse, error) {
 //	@return error
 func CreateUser(c *gin.Context, register *models.CreateUser) error {
 	// check for superuser
-	userId, _ := c.Get("userId")
-	superuser, err := database.IsSuperuser(userId.(uint64))
-	if err != nil {
-		c.AbortWithStatus(500)
-		return err
-	}
-	if !superuser {
+	u, _ := c.Get("user")
+	user := u.(*models.User)
+	if !user.Superuser {
 		c.AbortWithStatus(401)
-		return err
+		return errors.New("user is not superuser")
 	}
 	// check if username is taken
 	taken, err := database.UserExistsByUsername(register.Username)
@@ -80,7 +76,7 @@ func CreateUser(c *gin.Context, register *models.CreateUser) error {
 	}
 	if taken {
 		c.AbortWithStatus(409)
-		return err
+		return errors.New("user with given username already exists")
 	}
 	// initialize user
 	newUser, err := models.NewUser(register.Username, register.Password, false)
@@ -121,15 +117,11 @@ func WhoAmI(c *gin.Context) (*models.User, error) {
 //	@return error
 func GetAllUsers(c *gin.Context) (*[]models.User, error) {
 	// check for superuser
-	userId, _ := c.Get("userId")
-	superuser, err := database.IsSuperuser(userId.(uint64))
-	if err != nil {
-		c.AbortWithStatus(500)
-		return nil, err
-	}
-	if !superuser {
+	u, _ := c.Get("user")
+	user := u.(*models.User)
+	if !user.Superuser {
 		c.AbortWithStatus(401)
-		return nil, err
+		return nil, errors.New("user is not superuser")
 	}
 	// get users
 	users, err := database.GetAllUsers()
@@ -147,23 +139,19 @@ func GetAllUsers(c *gin.Context) (*[]models.User, error) {
 //	@return error
 func DeleteUsers(c *gin.Context, ids *models.Ids) error {
 	// check for superuser
-	userId, _ := c.Get("userId")
-	superuser, err := database.IsSuperuser(userId.(uint64))
-	if err != nil {
-		c.AbortWithStatus(500)
-		return err
-	}
-	if !superuser {
+	u, _ := c.Get("user")
+	user := u.(*models.User)
+	if !user.Superuser {
 		c.AbortWithStatus(401)
-		return err
+		return errors.New("user is not superuser")
 	}
 	// check if slice contains superuser's id
-	if slices.Contains(ids.Ids, userId.(uint64)) {
+	if slices.Contains(ids.Ids, user.Id) {
 		c.AbortWithStatus(500)
-		return err
+		return errors.New("can not delete superuser")
 	}
 	// delete users
-	err = database.DeleteUsers(ids.Ids)
+	err := database.DeleteUsers(ids.Ids)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return err
@@ -178,15 +166,11 @@ func DeleteUsers(c *gin.Context, ids *models.Ids) error {
 //	@return error
 func UpdateUser(c *gin.Context, request *models.UpdateUser) error {
 	// check fo superuser
-	userId, _ := c.Get("userId")
-	superuser, err := database.IsSuperuser(userId.(uint64))
-	if err != nil {
-		c.AbortWithStatus(500)
-		return err
-	}
-	if !superuser {
+	u, _ := c.Get("user")
+	user := u.(models.User)
+	if !user.Superuser {
 		c.AbortWithStatus(401)
-		return err
+		return errors.New("user is not superuser")
 	}
 	// check if exists
 	exists, err := database.UserExistsById(request.Id)

@@ -13,12 +13,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Generate and sign token for user.
+// Generate and sign access token.
 //
 //	@param id
 //	@return string
 //	@return error
-func GenerateToken(id uint64) (string, error) {
+func GenerateAccessToken(id uint64) (string, error) {
 	// token lifespan
 	lifespan, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_LIFESPAN"))
 	// payload
@@ -37,14 +37,15 @@ func GenerateToken(id uint64) (string, error) {
 // Check if the token is valid.
 //
 //	@param tokenStr
+//	@param secret
 //	@return uint64
 //	@return error
-func TokenValid(tokenStr string) (uint64, error) {
+func TokenValid(tokenStr string, secret string) (uint64, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(os.Getenv("ACCESS_TOKEN_SECRET")), nil
+		return []byte(secret), nil
 	})
 	if err != nil {
 		return 0, err
@@ -65,4 +66,22 @@ func ExtractTokenFromContext(c *gin.Context) string {
 		return strings.Split(bearerToken, " ")[1]
 	}
 	return ""
+}
+
+// Generate and sign device token.
+//
+//	@param id
+//	@return string
+//	@return error
+func GenerateTrackerToken(id uint64) (string, error) {
+	// payload
+	now := time.Now()
+	claims := jwt.MapClaims{}
+	claims["sub"] = id
+	claims["iat"] = now.Unix()
+	claims["nbf"] = now.Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// create and sign token
+	return token.SignedString([]byte(os.Getenv("TRACKER_TOKEN_SECRET")))
 }
