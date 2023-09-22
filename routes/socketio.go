@@ -39,7 +39,7 @@ func NewSocketIOServer() *socketio.Server {
 			return err
 		}
 		if !exists {
-			return errors.New("tracker does not exist")
+			return errors.New("invalid token or tracker does not exist")
 		}
 		// get tracker
 		tracker, err := database.GetTrackerById(trackerId)
@@ -48,24 +48,20 @@ func NewSocketIOServer() *socketio.Server {
 		}
 		// set to context
 		s.SetContext(tracker)
-		log.Println("Tracker " + tracker.Name + " connected.")
+		log.Println("Tracker '" + tracker.Name + "' connected.")
 		return nil
 	})
 
 	// send GNSS data event
-	server.OnEvent("/", "sendCurrent", func(s socketio.Conn, msg map[string]interface{}) {
+	server.OnEvent("/", "sendCurrent", func(s socketio.Conn, msg map[string]interface{}) error {
 		// TODO upload data to database
 		// tracker := s.Context()
 		// parse map to struct
 		_, err := models.ParseMap(msg)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	})
-
-	// error
-	server.OnError("/", func(s socketio.Conn, err error) {
-		log.Println("Error (" + err.Error() + ").")
+		return nil
 	})
 
 	// disconnect
@@ -74,7 +70,7 @@ func NewSocketIOServer() *socketio.Server {
 		if tracker == nil {
 			tracker = models.DefaultTracker()
 		}
-		log.Println("Tracker " + tracker.(*models.Tracker).Name + " disconnected (" + reason + ").")
+		log.Println("Tracker '" + tracker.(*models.Tracker).Name + "' disconnected (" + reason + ").")
 	})
 
 	return server

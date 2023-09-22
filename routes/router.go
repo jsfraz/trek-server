@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"jsfraz/trek-server/middlewares"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,9 @@ import (
 // Returns a new router
 func NewRouter() (*fizz.Fizz, error) {
 	// gin instance
-	engine := gin.Default()
+	engine := gin.New()
+	// error logging
+	engine.Use(middlewares.Error([]string{"/socket.io/"}))
 	// default cors config, Allow Origin, Authorization header
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
