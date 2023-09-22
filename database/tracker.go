@@ -54,7 +54,7 @@ func TrackerExistsByName(name string) (bool, error) {
 //	@return error
 func TrackerExistsById(id uint64) (bool, error) {
 	var count int64
-	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("id = ?", id).Count(&count).Error
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -73,4 +73,41 @@ func GetTrackerById(id uint64) (*models.Tracker, error) {
 		return nil, err
 	}
 	return &tracker, nil
+}
+
+// Set device token.
+//
+//	@param trackerId
+//	@param token
+//	@return error
+func SetDeviceToken(trackerId uint64, token string) error {
+	var tracker models.Tracker
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
+	if err != nil {
+		return err
+	}
+	// update
+	tracker.Token = token
+	return utils.GetSingleton().PostgresDb.Save(&tracker).Error
+}
+
+// Get all trackers.
+//
+//	@return *[]models.Tracker
+//	@return error
+func GetAllTrackers() (*[]models.Tracker, error) {
+	var trackers []models.Tracker = []models.Tracker{}
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Order("id ASC").Find(&trackers).Error
+	if err != nil {
+		return nil, err
+	}
+	return &trackers, nil
+}
+
+// Delete trackers with given IDs.
+//
+//	@param ids
+//	@return error
+func DeleteTrackers(ids []uint64) error {
+	return utils.GetSingleton().PostgresDb.Where("id IN ?", ids).Delete(&models.Tracker{}).Error
 }

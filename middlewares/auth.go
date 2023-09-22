@@ -16,7 +16,7 @@ import (
 func Auth(c *gin.Context) {
 	// get access token from context
 	userId, err := utils.TokenValid(utils.ExtractTokenFromContext(c), os.Getenv("ACCESS_TOKEN_SECRET"))
-	// token není platný
+	// invalid token
 	if err != nil {
 		c.AbortWithStatus(401)
 		c.Error(err)
