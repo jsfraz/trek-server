@@ -75,7 +75,7 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 		c.AbortWithStatus(500)
 		return nil, err
 	}
-	err = database.SetDeviceToken(request.Id, token)
+	err = database.SetTrackerToken(request.Id, token)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return nil, err
@@ -120,6 +120,40 @@ func DeleteTrackers(c *gin.Context, ids *models.Ids) error {
 	}
 	// delete trackers
 	err := database.DeleteTrackers(ids.Ids)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	return nil
+}
+
+// Update tracker name.
+//
+//	@param c
+//	@param request
+//	@return error
+func UpdateTrackerName(c *gin.Context, request *models.UpdateTrackerName) error {
+	// check fo superuser
+	u, _ := c.Get("user")
+	user := u.(*models.User)
+	if !user.Superuser {
+		c.AbortWithStatus(401)
+		return errors.New("user is not superuser")
+	}
+	// check if exists
+	exists, err := database.TrackerExistsById(request.Id)
+	// error
+	if err != nil {
+		c.AbortWithStatus(500)
+		return err
+	}
+	// not found
+	if !exists {
+		c.AbortWithStatus(500)
+		return errors.New("tracker does not exist")
+	}
+	// update
+	err = database.SetTrackerName(request.Id, request.Name)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return err

@@ -75,12 +75,12 @@ func GetTrackerById(id uint64) (*models.Tracker, error) {
 	return &tracker, nil
 }
 
-// Set device token.
+// Set tracker token.
 //
 //	@param trackerId
 //	@param token
 //	@return error
-func SetDeviceToken(trackerId uint64, token string) error {
+func SetTrackerToken(trackerId uint64, token string) error {
 	var tracker models.Tracker
 	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
 	if err != nil {
@@ -109,5 +109,33 @@ func GetAllTrackers() (*[]models.Tracker, error) {
 //	@param ids
 //	@return error
 func DeleteTrackers(ids []uint64) error {
-	return utils.GetSingleton().PostgresDb.Where("id IN ?", ids).Delete(&models.Tracker{}).Error
+	// transaction
+	tx := utils.GetSingleton().PostgresDb.Begin()
+	// delete GNSS data
+	if err := tx.Where("tracker_id IN ?", ids).Delete(&models.GNSSData{}).Error; err != nil {
+		tx.Rollback() // rollback the transaction if an error occurs
+		return err
+	}
+	// delete tracker
+	if err := tx.Where("id IN ?", ids).Delete(&models.Tracker{}).Error; err != nil {
+		tx.Rollback() // rollback the transaction if an error occurs
+		return err
+	}
+	return tx.Commit().Error
+}
+
+// Set tracker name.
+//
+//	@param trackerId
+//	@param name
+//	@return error
+func SetTrackerName(trackerId uint64, name string) error {
+	var tracker models.Tracker
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
+	if err != nil {
+		return err
+	}
+	// update
+	tracker.Name = name
+	return utils.GetSingleton().PostgresDb.Save(&tracker).Error
 }

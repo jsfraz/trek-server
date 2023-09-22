@@ -74,10 +74,17 @@ func NewSocketIOServer() *socketio.Server {
 			return err
 		}
 		if existsData {
-			return errors.New("duplicated GNSS data")
+			return errors.New("duplicate GNSS data")
 		}
 		// insert to database
 		return database.InsertGNSSData(*data.ToDatabaseModel(t.Id))
+	})
+
+	// error
+	server.OnError("/", func(s socketio.Conn, err error) {
+		log.Printf("%s",
+			err.Error(),
+		)
 	})
 
 	// disconnect

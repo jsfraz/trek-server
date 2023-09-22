@@ -26,4 +26,6 @@ func TrackerRoute(g *fizz.RouterGroup) {
 	grp.GET("all", utils.CreateOperationOption("Get all trackers.", true), tonic.Handler(handlers.GetAllTrackers, 200))
 	// delete trackers
 	grp.DELETE("", utils.CreateOperationOption("Delete trackers.", true), tonic.Handler(handlers.DeleteTrackers, 204))
+	// update tracker name
+	grp.PATCH("name", utils.CreateOperationOption("Update tracker name.", true), tonic.Handler(handlers.UpdateTrackerName, 204))
 }
