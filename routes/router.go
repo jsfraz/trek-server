@@ -15,7 +15,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	// gin instance
 	engine := gin.New()
 	// error logging
-	engine.Use(middlewares.Error([]string{"/socket.io/"}))
+	engine.Use(middlewares.Logging([]string{"/socket.io/"}))
 	// default cors config, Allow Origin, Authorization header
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true

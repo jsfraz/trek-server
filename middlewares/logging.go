@@ -8,7 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Error(skip []string) gin.HandlerFunc {
+// Logging middleware.
+//
+//	@param skip
+//	@return gin.HandlerFunc
+func Logging(skip []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()

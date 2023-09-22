@@ -9,7 +9,7 @@ import (
 
 const iso8601RegexPattern = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)?$`
 
-type GNSSData struct {
+type GNSSDataInput struct {
 	Latitude  float64 `json:"latitude" validate:"latitude,required"`
 	Longitude float64 `json:"longitude" validate:"longitude,required"`
 	Speed     float64 `json:"speed" validate:"min=0"`
@@ -21,7 +21,7 @@ type GNSSData struct {
 //	@receiver g
 //	@param timestamp
 //	@return bool
-func (g GNSSData) ValidateISO8601Timestamp() bool {
+func (g GNSSDataInput) ValidateISO8601Timestamp() bool {
 	regex := regexp.MustCompile(iso8601RegexPattern)
 	return regex.MatchString(g.Timestamp)
 }
@@ -31,8 +31,8 @@ func (g GNSSData) ValidateISO8601Timestamp() bool {
 //	@param mapData
 //	@return *GNSSData
 //	@return error
-func ParseMap(mapData map[string]interface{}) (*GNSSData, error) {
-	var data GNSSData
+func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
+	var data GNSSDataInput
 	errStr := "Invalid field: "
 	// iterate trough values
 	for key, value := range mapData {
@@ -75,4 +75,19 @@ func ParseMap(mapData map[string]interface{}) (*GNSSData, error) {
 		return nil, errors.New("Invalid ISO 8601 timestamp: '" + data.Timestamp + "'")
 	}
 	return &data, nil
+}
+
+// Return GNSSDataDb.
+//
+//	@receiver g
+//	@param trackerId
+//	@return *GNSSData
+func (g GNSSDataInput) ToDatabaseModel(trackerId uint64) *GNSSData {
+	gDb := new(GNSSData)
+	gDb.TrackerId = trackerId
+	gDb.Latitude = g.Latitude
+	gDb.Longitude = g.Longitude
+	gDb.Speed = g.Speed
+	gDb.Timestamp = g.Timestamp
+	return gDb
 }

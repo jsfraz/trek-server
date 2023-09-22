@@ -20,7 +20,6 @@ func NewSocketIOServer() *socketio.Server {
 
 	// connect
 	server.OnConnect("/", func(s socketio.Conn) error {
-		// TODO get API key from query, check key, get tracker from database
 		// get access token from context
 		queryValues, err := url.ParseQuery(s.URL().RawQuery)
 		if err != nil {
@@ -54,14 +53,31 @@ func NewSocketIOServer() *socketio.Server {
 
 	// send GNSS data event
 	server.OnEvent("/", "sendCurrent", func(s socketio.Conn, msg map[string]interface{}) error {
-		// TODO upload data to database
-		// tracker := s.Context()
+		tracker := s.Context()
+		t := tracker.(*models.Tracker)
 		// parse map to struct
-		_, err := models.ParseMap(msg)
+		data, err := models.ParseMap(msg)
 		if err != nil {
 			return err
 		}
-		return nil
+		// check if tracker existsTracker
+		existsTracker, err := database.TrackerExistsById(t.Id)
+		if err != nil {
+			return err
+		}
+		if !existsTracker {
+			return errors.New("tracker does not exist")
+		}
+		// check if GNSS record existsData
+		existsData, err := database.GNSSDataExists(t.Id, data.Timestamp)
+		if err != nil {
+			return err
+		}
+		if existsData {
+			return errors.New("duplicated GNSS data")
+		}
+		// insert to database
+		return database.InsertGNSSData(*data.ToDatabaseModel(t.Id))
 	})
 
 	// disconnect

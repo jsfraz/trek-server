@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 	// database schema migration
-	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{})
+	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{}, &models.GNSSData{})
 	if err != nil {
 		log.Fatal(err)
 	}
