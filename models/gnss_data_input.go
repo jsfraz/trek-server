@@ -3,11 +3,13 @@ package models
 import (
 	"errors"
 	"regexp"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
 
 const iso8601RegexPattern = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)?$`
+const layout = "2006-01-02T15:04:05.999999"
 
 type GNSSDataInput struct {
 	Latitude  float64 `json:"latitude" validate:"latitude,required"`
@@ -82,12 +84,16 @@ func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
 //	@receiver g
 //	@param trackerId
 //	@return *GNSSData
-func (g GNSSDataInput) ToDatabaseModel(trackerId uint64) *GNSSData {
+func (g GNSSDataInput) ToDatabaseModel(trackerId uint64) (*GNSSData, error) {
 	gDb := new(GNSSData)
 	gDb.TrackerId = trackerId
 	gDb.Latitude = g.Latitude
 	gDb.Longitude = g.Longitude
 	gDb.Speed = g.Speed
-	gDb.Timestamp = g.Timestamp
-	return gDb
+	timestamp, err := time.Parse(layout, g.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	gDb.Timestamp = timestamp
+	return gDb, nil
 }
