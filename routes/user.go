@@ -28,4 +28,7 @@ func UserRoute(g *fizz.RouterGroup) {
 	grp.DELETE("", utils.CreateOperationOption("Delete users.", true), tonic.Handler(handlers.DeleteUsers, 204))
 	// update user
 	grp.PATCH("", utils.CreateOperationOption("Update user.", true), tonic.Handler(handlers.UpdateUser, 204))
+
+	// GNSS route
+	GNSSRoute(grp)
 }

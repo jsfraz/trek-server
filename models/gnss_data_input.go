@@ -2,30 +2,16 @@ package models
 
 import (
 	"errors"
-	"regexp"
-	"time"
+	"jsfraz/trek-server/utils"
 
 	"github.com/go-playground/validator/v10"
 )
-
-const iso8601RegexPattern = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)?$`
-const layout = "2006-01-02T15:04:05.999999"
 
 type GNSSDataInput struct {
 	Latitude  float64 `json:"latitude" validate:"latitude,required"`
 	Longitude float64 `json:"longitude" validate:"longitude,required"`
 	Speed     float64 `json:"speed" validate:"min=0"`
 	Timestamp string  `json:"timestamp" validate:"required"`
-}
-
-// Checks ISO 8601 timestamp.
-//
-//	@receiver g
-//	@param timestamp
-//	@return bool
-func (g GNSSDataInput) ValidateISO8601Timestamp() bool {
-	regex := regexp.MustCompile(iso8601RegexPattern)
-	return regex.MatchString(g.Timestamp)
 }
 
 // Parse map into struct.
@@ -72,9 +58,9 @@ func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
 		return nil, err
 	}
 	// timestamp validation
-	timestampValid := data.ValidateISO8601Timestamp()
-	if !timestampValid {
-		return nil, errors.New("Invalid ISO 8601 timestamp: '" + data.Timestamp + "'")
+	_, err = utils.ParseISO8601String(data.Timestamp)
+	if err != nil {
+		return nil, errors.New("invalid ISO 8601 timestamp: '" + data.Timestamp + "'")
 	}
 	return &data, nil
 }
@@ -90,10 +76,10 @@ func (g GNSSDataInput) ToDatabaseModel(trackerId uint64) (*GNSSData, error) {
 	gDb.Latitude = g.Latitude
 	gDb.Longitude = g.Longitude
 	gDb.Speed = g.Speed
-	timestamp, err := time.Parse(layout, g.Timestamp)
+	timestamp, err := utils.ParseISO8601String(g.Timestamp)
 	if err != nil {
 		return nil, err
 	}
-	gDb.Timestamp = timestamp
+	gDb.Timestamp = *timestamp
 	return gDb, nil
 }
