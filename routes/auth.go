@@ -14,9 +14,6 @@ import (
 func AuthRoute(g *fizz.RouterGroup) {
 	// auth route
 	grp := g.Group("auth", "Authentication", "Authentication")
-	// TODO create user
-	// TODO get user(s)
-	// TODO delete user(s)
 
 	// login
 	grp.POST("login", utils.CreateOperationOption("User login.", false), tonic.Handler(handlers.Login, 200))

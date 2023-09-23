@@ -20,7 +20,12 @@ func TrackerRoute(g *fizz.RouterGroup) {
 
 	// create tracker
 	grp.POST("", utils.CreateOperationOption("Create tracker.", true), tonic.Handler(handlers.CreateTracker, 200))
-	// TODO regenerate API key
-	// TODO get tracker(s)
-	// TODO delete tracker(s)
+	// regenerate tracker token
+	grp.PATCH("token", utils.CreateOperationOption("Regenerate tracker token.", true), tonic.Handler(handlers.RegenerateTrackerToken, 200))
+	// get all trackers
+	grp.GET("all", utils.CreateOperationOption("Get all trackers.", true), tonic.Handler(handlers.GetAllTrackers, 200))
+	// delete trackers
+	grp.DELETE("", utils.CreateOperationOption("Delete trackers.", true), tonic.Handler(handlers.DeleteTrackers, 204))
+	// update tracker name
+	grp.PATCH("name", utils.CreateOperationOption("Update tracker name.", true), tonic.Handler(handlers.UpdateTrackerName, 204))
 }

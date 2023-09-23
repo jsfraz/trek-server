@@ -2,28 +2,16 @@ package models
 
 import (
 	"errors"
-	"regexp"
+	"jsfraz/trek-server/utils"
 
 	"github.com/go-playground/validator/v10"
 )
 
-const iso8601RegexPattern = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)?$`
-
-type GNSSData struct {
+type GNSSDataInput struct {
 	Latitude  float64 `json:"latitude" validate:"latitude,required"`
 	Longitude float64 `json:"longitude" validate:"longitude,required"`
 	Speed     float64 `json:"speed" validate:"min=0"`
 	Timestamp string  `json:"timestamp" validate:"required"`
-}
-
-// Checks ISO 8601 timestamp.
-//
-//	@receiver g
-//	@param timestamp
-//	@return bool
-func (g GNSSData) ValidateISO8601Timestamp() bool {
-	regex := regexp.MustCompile(iso8601RegexPattern)
-	return regex.MatchString(g.Timestamp)
 }
 
 // Parse map into struct.
@@ -31,8 +19,8 @@ func (g GNSSData) ValidateISO8601Timestamp() bool {
 //	@param mapData
 //	@return *GNSSData
 //	@return error
-func ParseMap(mapData map[string]interface{}) (*GNSSData, error) {
-	var data GNSSData
+func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
+	var data GNSSDataInput
 	errStr := "Invalid field: "
 	// iterate trough values
 	for key, value := range mapData {
@@ -70,9 +58,28 @@ func ParseMap(mapData map[string]interface{}) (*GNSSData, error) {
 		return nil, err
 	}
 	// timestamp validation
-	timestampValid := data.ValidateISO8601Timestamp()
-	if !timestampValid {
-		return nil, errors.New("Invalid ISO 8601 timestamp: '" + data.Timestamp + "'")
+	_, err = utils.ParseISO8601String(data.Timestamp)
+	if err != nil {
+		return nil, errors.New("invalid ISO 8601 timestamp: '" + data.Timestamp + "'")
 	}
 	return &data, nil
+}
+
+// Return GNSSDataDb.
+//
+//	@receiver g
+//	@param trackerId
+//	@return *GNSSData
+func (g GNSSDataInput) ToDatabaseModel(trackerId uint64) (*GNSSData, error) {
+	gDb := new(GNSSData)
+	gDb.TrackerId = trackerId
+	gDb.Latitude = g.Latitude
+	gDb.Longitude = g.Longitude
+	gDb.Speed = g.Speed
+	timestamp, err := utils.ParseISO8601String(g.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	gDb.Timestamp = *timestamp
+	return gDb, nil
 }

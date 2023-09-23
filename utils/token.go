@@ -68,7 +68,7 @@ func ExtractTokenFromContext(c *gin.Context) string {
 	return ""
 }
 
-// Generate and sign device token.
+// Generate and sign tracker token.
 //
 //	@param id
 //	@return string

@@ -16,6 +16,10 @@ import (
 )
 
 func main() {
+	// log settings
+	log.SetPrefix("trek: ")
+	log.SetFlags(log.LstdFlags | log.LUTC | log.Lmicroseconds)
+
 	// check Gin envs
 	utils.CheckGinModeEnv()
 	// check Postgres envs
@@ -24,12 +28,12 @@ func main() {
 	connStr := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("POSTGRES_SERVER") + ":" + os.Getenv("POSTGRES_PORT") + "/" + os.Getenv("POSTGRES_DB")
 	postgres, err := gorm.Open(postgres.Open(connStr), &gorm.Config{Logger: logger.Default.LogMode(utils.GetGormLogLevel())})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// database schema migration
-	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{})
+	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{}, &models.GNSSData{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// set database client in singleton
 	singleton := utils.GetSingleton()

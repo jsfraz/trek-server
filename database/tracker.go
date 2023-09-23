@@ -54,7 +54,7 @@ func TrackerExistsByName(name string) (bool, error) {
 //	@return error
 func TrackerExistsById(id uint64) (bool, error) {
 	var count int64
-	err := utils.GetSingleton().PostgresDb.Model(&models.User{}).Where("id = ?", id).Count(&count).Error
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -73,4 +73,69 @@ func GetTrackerById(id uint64) (*models.Tracker, error) {
 		return nil, err
 	}
 	return &tracker, nil
+}
+
+// Set tracker token.
+//
+//	@param trackerId
+//	@param token
+//	@return error
+func SetTrackerToken(trackerId uint64, token string) error {
+	var tracker models.Tracker
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
+	if err != nil {
+		return err
+	}
+	// update
+	tracker.Token = token
+	return utils.GetSingleton().PostgresDb.Save(&tracker).Error
+}
+
+// Get all trackers.
+//
+//	@return *[]models.Tracker
+//	@return error
+func GetAllTrackers() (*[]models.Tracker, error) {
+	var trackers []models.Tracker = []models.Tracker{}
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Order("id ASC").Find(&trackers).Error
+	if err != nil {
+		return nil, err
+	}
+	return &trackers, nil
+}
+
+// Delete trackers with given IDs.
+//
+//	@param ids
+//	@return error
+func DeleteTrackers(ids []uint64) error {
+	// transaction
+	tx := utils.GetSingleton().PostgresDb.Begin()
+	// delete GNSS data
+	if err := tx.Where("tracker_id IN ?", ids).Delete(&models.GNSSData{}).Error; err != nil {
+		tx.Rollback() // rollback the transaction if an error occurs
+		return err
+	}
+	// delete tracker
+	if err := tx.Where("id IN ?", ids).Delete(&models.Tracker{}).Error; err != nil {
+		tx.Rollback() // rollback the transaction if an error occurs
+		return err
+	}
+	return tx.Commit().Error
+}
+
+// Set tracker name.
+//
+//	@param trackerId
+//	@param name
+//	@return error
+func SetTrackerName(trackerId uint64, name string) error {
+	var tracker models.Tracker
+	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
+	if err != nil {
+		return err
+	}
+	// update
+	tracker.Name = name
+	return utils.GetSingleton().PostgresDb.Save(&tracker).Error
 }

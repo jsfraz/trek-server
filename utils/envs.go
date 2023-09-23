@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"regexp"
 
@@ -26,33 +26,32 @@ func CheckPostgresEnvs() {
 	// username
 	if user == "" {
 		ok = false
-		fmt.Println("Empty username for PostgreSQL.")
+		log.Println("Empty username for PostgreSQL.")
 	}
 	// password
 	if password == "" {
 		ok = false
-		fmt.Println("Empty PostgreSQL password.")
+		log.Println("Empty PostgreSQL password.")
 	}
 	// mysql server
 	if server == "" {
 		ok = false
-		fmt.Println("Empty PostgreSQL server address.")
+		log.Println("Empty PostgreSQL server address.")
 	}
 	// port
 	matchPort, _ := regexp.MatchString(numberPattern, port)
 	if !matchPort {
 		ok = false
-		fmt.Println("Empty or invalid PostgreSQL port.")
+		log.Println("Empty or invalid PostgreSQL port.")
 	}
 	// database name
 	if db == "" {
 		ok = false
-		fmt.Println("Empty PostgreSQL database.")
+		log.Println("Empty PostgreSQL database.")
 	}
 	// result
 	if !ok {
-		fmt.Println("Check the environment variables. Shutting down...")
-		os.Exit(1)
+		log.Fatalln("Check the environment variables. Shutting down...")
 	}
 }
 
@@ -68,17 +67,16 @@ func CheckSuperuserEnvs() {
 	// uživatelské jméno
 	if user == "" {
 		ok = false
-		fmt.Println("Empty username for superuser.")
+		log.Println("Empty username for superuser.")
 	}
 	// heslo
 	if password == "" {
 		ok = false
-		fmt.Println("Blank superuser password.")
+		log.Println("Blank superuser password.")
 	}
 	// result
 	if !ok {
-		fmt.Println("Check the environment variables. Shutting down...")
-		os.Exit(1)
+		log.Fatalln("Check the environment variables. Shutting down...")
 	}
 }
 
@@ -90,23 +88,22 @@ func CheckTokenEnvs() {
 	// access token secret
 	if os.Getenv("ACCESS_TOKEN_SECRET") == "" {
 		ok = false
-		fmt.Println("Invalid access token secret.")
+		log.Println("Invalid access token secret.")
 	}
 	// životnost tokenu
 	matchAccess, _ := regexp.MatchString(numberPattern, os.Getenv("ACCESS_TOKEN_LIFESPAN"))
 	if !matchAccess {
 		ok = false
-		fmt.Println("Invalid access token lifetime.")
+		log.Println("Invalid access token lifetime.")
 	}
 	// tracker token
 	if os.Getenv("TRACKER_TOKEN_SECRET") == "" {
 		ok = false
-		fmt.Println("Invalid tracker token secret.")
+		log.Println("Invalid tracker token secret.")
 	}
 	// result
 	if !ok {
-		fmt.Println("Check the environment variables. Shutting down...")
-		os.Exit(1)
+		log.Fatalln("Check the environment variables. Shutting down...")
 	}
 }
 
@@ -116,9 +113,8 @@ func CheckTokenEnvs() {
 func CheckGinModeEnv() {
 	match, _ := regexp.MatchString(`^(|debug|release)$`, os.Getenv("GIN_MODE"))
 	if !match {
-		fmt.Println("Invalid Gin mode.")
-		fmt.Println("Check the environment variables. Shutting down...")
-		os.Exit(1)
+		log.Println("Invalid Gin mode.")
+		log.Fatalln("Check the environment variables. Shutting down...")
 	}
 }
 
