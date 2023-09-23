@@ -7,9 +7,10 @@ import (
 )
 
 type GNSSFromTo struct {
-	Id   uint64 `query:"id" validate:"required"`
-	From string `query:"from" validate:"required"`
-	To   string `query:"to" validate:"required"`
+	Id     uint64 `query:"id" validate:"required"`
+	From   string `query:"from" validate:"required"`
+	To     string `query:"to" validate:"required"`
+	Offset int    `query:"offset" validate:"min=1,max=300"`
 }
 
 // Validate timestamps.
