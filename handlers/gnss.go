@@ -12,9 +12,9 @@ import (
 //
 //	@param c
 //	@param request
-//	@return *[]models.GNSSData
+//	@return *models.GNSSDataSummary
 //	@return error
-func GetAllGNSSRecords(c *gin.Context, request *models.GNSSAll) (*[]models.GNSSData, error) {
+func GetAllGNSSRecords(c *gin.Context, request *models.GNSSAll) (*models.GNSSDataSummary, error) {
 	// check if exists
 	exists, err := database.TrackerExistsById(request.Id)
 	// error
@@ -40,9 +40,9 @@ func GetAllGNSSRecords(c *gin.Context, request *models.GNSSAll) (*[]models.GNSSD
 //
 //	@param c
 //	@param request
-//	@return *[]models.GNSSData
+//	@return *models.GNSSDataSummary
 //	@return error
-func GetGNSSRecordsByTimestamps(c *gin.Context, request *models.GNSSFromTo) (*[]models.GNSSData, error) {
+func GetGNSSRecordsByTimestamps(c *gin.Context, request *models.GNSSFromTo) (*models.GNSSDataSummary, error) {
 	// check if exists
 	exists, err := database.TrackerExistsById(request.Id)
 	// error
