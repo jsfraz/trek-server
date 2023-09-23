@@ -80,7 +80,7 @@ func GetAllGNSSRecords(trackerId uint64, offset int) (*models.GNSSDataSummary, e
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(data, min, avg, max), nil
+	return models.NewGNSSDataSummary(trackerId, data, min, avg, max), nil
 }
 
 // Get GNSS records by tracker ID and timestamps.
@@ -134,7 +134,7 @@ func GetGNSSRecordsByTimestamps(trackerId uint64, from time.Time, to time.Time, 
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(data, min, avg, max), nil
+	return models.NewGNSSDataSummary(trackerId, data, min, avg, max), nil
 }
 
 // Get min speed.
