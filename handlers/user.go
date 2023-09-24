@@ -99,15 +99,14 @@ func CreateUser(c *gin.Context, register *models.CreateUser) error {
 //	@return *models.User
 //	@return error
 func WhoAmI(c *gin.Context) (*models.User, error) {
-	// user id
-	userId, _ := c.Get("userId")
-	// get user
-	user, err := database.GetUserById(userId.(uint64))
-	if err != nil {
+	u, _ := c.Get("user")
+	if u != nil {
+		user := u.(*models.User)
+		return user, nil
+	} else {
 		c.AbortWithStatus(500)
-		return nil, err
+		return nil, errors.New("no user set in context")
 	}
-	return user, nil
 }
 
 // Get all users.
