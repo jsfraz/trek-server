@@ -6,7 +6,6 @@ import (
 	"jsfraz/trek-server/database"
 	"jsfraz/trek-server/models"
 	"jsfraz/trek-server/utils"
-	"slices"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -131,12 +130,12 @@ func GetAllUsers(c *gin.Context) (*[]models.User, error) {
 	return users, nil
 }
 
-// Delete users.
+// Delete user.
 //
 //	@param c
-//	@param ids
+//	@param id
 //	@return error
-func DeleteUsers(c *gin.Context, ids *models.Ids) error {
+func DeleteUser(c *gin.Context, id *models.Id) error {
 	// check for superuser
 	u, _ := c.Get("user")
 	user := u.(*models.User)
@@ -144,13 +143,13 @@ func DeleteUsers(c *gin.Context, ids *models.Ids) error {
 		c.AbortWithStatus(401)
 		return errors.New("user is not superuser")
 	}
-	// check if slice contains superuser's id
-	if slices.Contains(ids.Ids, user.Id) {
+	// check if id belong to root
+	if id.Id == user.Id {
 		c.AbortWithStatus(500)
 		return errors.New("can not delete superuser")
 	}
-	// delete users
-	err := database.DeleteUsers(ids.Ids)
+	// delete user
+	err := database.DeleteUser(id.Id)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return err

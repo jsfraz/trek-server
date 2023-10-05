@@ -24,8 +24,8 @@ func UserRoute(g *fizz.RouterGroup) {
 	grp.GET("whoami", utils.CreateOperationOption("Get current user.", true), tonic.Handler(handlers.WhoAmI, 200))
 	// get all users
 	grp.GET("all", utils.CreateOperationOption("Get all users.", true), tonic.Handler(handlers.GetAllUsers, 200))
-	// delete users
-	grp.DELETE("", utils.CreateOperationOption("Delete users.", true), tonic.Handler(handlers.DeleteUsers, 204))
+	// delete user
+	grp.DELETE("", utils.CreateOperationOption("Delete user.", true), tonic.Handler(handlers.DeleteUser, 204))
 	// update user
 	grp.PATCH("", utils.CreateOperationOption("Update user.", true), tonic.Handler(handlers.UpdateUser, 204))
 
