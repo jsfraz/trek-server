@@ -165,7 +165,7 @@ func DeleteUser(c *gin.Context, id *models.Id) error {
 func UpdateUser(c *gin.Context, request *models.UpdateUser) error {
 	// check fo superuser
 	u, _ := c.Get("user")
-	user := u.(models.User)
+	user := u.(*models.User)
 	if !user.Superuser {
 		c.AbortWithStatus(401)
 		return errors.New("user is not superuser")
