@@ -105,12 +105,12 @@ func GetAllTrackers(c *gin.Context) (*[]models.Tracker, error) {
 	return trackers, nil
 }
 
-// Delete trackers.
+// Delete tracker.
 //
 //	@param c
-//	@param ids
+//	@param id
 //	@return error
-func DeleteTrackers(c *gin.Context, ids *models.Ids) error {
+func DeleteTracker(c *gin.Context, id *models.Id) error {
 	// check for superuser
 	u, _ := c.Get("user")
 	user := u.(*models.User)
@@ -118,8 +118,8 @@ func DeleteTrackers(c *gin.Context, ids *models.Ids) error {
 		c.AbortWithStatus(401)
 		return errors.New("user is not superuser")
 	}
-	// delete trackers
-	err := database.DeleteTrackers(ids.Ids)
+	// delete tracker
+	err := database.DeleteTracker(id.Id)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return err

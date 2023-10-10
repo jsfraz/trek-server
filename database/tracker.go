@@ -104,20 +104,20 @@ func GetAllTrackers() (*[]models.Tracker, error) {
 	return &trackers, nil
 }
 
-// Delete trackers with given IDs.
+// Delete tracker with given ID.
 //
 //	@param ids
 //	@return error
-func DeleteTrackers(ids []uint64) error {
+func DeleteTracker(id uint64) error {
 	// transaction
 	tx := utils.GetSingleton().PostgresDb.Begin()
 	// delete GNSS data
-	if err := tx.Where("tracker_id IN ?", ids).Delete(&models.GNSSData{}).Error; err != nil {
+	if err := tx.Where("tracker_id = ?", id).Delete(&models.GNSSData{}).Error; err != nil {
 		tx.Rollback() // rollback the transaction if an error occurs
 		return err
 	}
 	// delete tracker
-	if err := tx.Where("id IN ?", ids).Delete(&models.Tracker{}).Error; err != nil {
+	if err := tx.Where("id = ?", id).Delete(&models.Tracker{}).Error; err != nil {
 		tx.Rollback() // rollback the transaction if an error occurs
 		return err
 	}
