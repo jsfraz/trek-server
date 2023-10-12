@@ -107,12 +107,12 @@ func GetAllUsers() (*[]models.User, error) {
 	return &users, nil
 }
 
-// Delete users with given IDs.
+// Delete user with given ID.
 //
-//	@param ids
+//	@param id
 //	@return error
-func DeleteUsers(ids []uint64) error {
-	return utils.GetSingleton().PostgresDb.Where("id IN ?", ids).Delete(&models.User{}).Error
+func DeleteUser(id uint64) error {
+	return utils.GetSingleton().PostgresDb.Where("id = ?", id).Delete(&models.User{}).Error
 }
 
 // Update user.
