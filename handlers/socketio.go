@@ -29,7 +29,7 @@ func SocketConnect(s socketio.Conn) error {
 	if err != nil {
 		return err
 	}
-	// check if user
+	// check if user exists
 	exists, err := database.TrackerExistsById(trackerId)
 	if err != nil {
 		return err
