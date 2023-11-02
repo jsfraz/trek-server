@@ -1,4 +1,6 @@
-# Trek server
+# trek-server
+
+Trek backend for tracking your motorcycles or whatever.
 
 ## Environment variables
 
@@ -18,5 +20,6 @@
 
 <!--
 ## Testing PostgreSQL container
+
 `sudo docker run -d --name postgres --restart always -e POSTGRES_USER=trek -e POSTGRES_PASSWORD=12345678 -v /home/razj/postgres:/var/lib/postgresql/data -p 5432:5432 postgres:alpine`
 --->
