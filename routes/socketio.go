@@ -19,7 +19,7 @@ func NewSocketIOServer() *socketio.Server {
 	server.OnEvent("/", "sendCurrent", handlers.SendCurrentEvent)
 	// error
 	server.OnError("/", func(s socketio.Conn, err error) {
-		log.Printf("%s",
+		log.Printf("Error: %s",
 			err.Error(),
 		)
 	})
