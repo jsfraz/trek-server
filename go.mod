@@ -1,6 +1,6 @@
 module jsfraz/trek-server
 
-go 1.21.1
+go 1.21.3
 
 require (
 	github.com/gin-contrib/cors v1.4.0
