@@ -18,14 +18,12 @@ services:
   server:
     container_name: trek-server
     build:
-      context: ./trek-server
-      dockerfile: Dockerfile
+      context: .
     restart: always
     ports:
-      - "localhost:8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - /etc/localtime:/etc/localtime:ro  # sync time
-      - ./trek-server/assets:/app/assets  # build dir
 
     depends_on:
       - trek-postgres
