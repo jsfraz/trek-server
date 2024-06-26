@@ -2,7 +2,6 @@
 
 Trek backend for tracking your motorcycles or whatever.
 
-<!--
 ## Environment variables
 
 | ENV                   | Example             |
@@ -18,4 +17,3 @@ Trek backend for tracking your motorcycles or whatever.
 | TRACKER_TOKEN_SECRET  | ...long text...     |
 | SUPERUSER_USERNAME    | root                |
 | SUPERUSER_PASSWORD    | 12345678            |
--->

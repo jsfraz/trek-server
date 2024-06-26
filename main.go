@@ -18,10 +18,10 @@ import (
 
 func main() {
 	// log settings
-	log.SetPrefix("trek: ")
+	log.SetPrefix("trek-server: ")
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Lmicroseconds)
 
-	waitDelay := 5
+	waitDelay := 1
 	log.Printf("Waiting %d seconds for the Postgres server...", waitDelay)
 	time.Sleep(time.Second * time.Duration(waitDelay))
 

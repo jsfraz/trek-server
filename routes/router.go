@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"jsfraz/trek-server/middlewares"
 	"os"
-	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,21 +33,6 @@ func NewRouter() (*fizz.Fizz, error) {
 	// error 404
 	engine.NoRoute(func(c *gin.Context) {
 		c.HTML(404, "404.html", nil)
-	})
-	// download file
-	engine.GET("download/:file", func(c *gin.Context) {
-		file := c.Param("file")
-		// Ignore .files
-		if strings.HasPrefix(file, ".") {
-			c.AbortWithStatus(400)
-			return
-		}
-		filePath := "assets/" + file
-		if _, err := os.Stat(filePath); err == nil {
-			c.FileAttachment(filePath, file)
-		} else {
-			c.AbortWithStatus(401)
-		}
 	})
 
 	// fizz instance
