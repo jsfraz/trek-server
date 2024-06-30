@@ -8,8 +8,8 @@ import (
 )
 
 type GNSSDataInput struct {
-	Latitude  float64 `json:"latitude" validate:"latitude,required"`
-	Longitude float64 `json:"longitude" validate:"longitude,required"`
+	Latitude  float64 `json:"latitude" validate:"latitude"`
+	Longitude float64 `json:"longitude" validate:"longitude"`
 	Speed     float64 `json:"speed" validate:"min=0"`
 	Timestamp string  `json:"timestamp" validate:"required"`
 }
@@ -21,7 +21,7 @@ type GNSSDataInput struct {
 //	@return error
 func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
 	var data GNSSDataInput
-	errStr := "Invalid field: "
+	errStr := "invalid field: "
 	// iterate trough values
 	for key, value := range mapData {
 		switch key {
