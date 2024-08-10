@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 	"jsfraz/trek-server/middlewares"
-	"os"
+	"jsfraz/trek-server/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -59,7 +59,7 @@ func NewRouter() (*fizz.Fizz, error) {
 	grp := fizz.Group("api", "", "")
 
 	// OpenAPI spec
-	if os.Getenv("GIN_MODE") != "release" {
+	if utils.GetSingleton().Config.GinMode != "release" {
 		grp.GET("openapi.json", nil, fizz.OpenAPI(infos, "json"))
 	}
 

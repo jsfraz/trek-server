@@ -1,14 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"jsfraz/trek-server/database"
 	"jsfraz/trek-server/models"
 	"jsfraz/trek-server/routes"
 	"jsfraz/trek-server/utils"
 	"log"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -21,42 +20,47 @@ func main() {
 	log.SetPrefix("trek-server: ")
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Lmicroseconds)
 
-	waitDelay := 1
-	log.Printf("Waiting %d seconds for the Postgres server...", waitDelay)
-	time.Sleep(time.Second * time.Duration(waitDelay))
+	// Load config
+	config, err := utils.LoadConfig()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	singleton := utils.GetSingleton()
+	singleton.Config = config
 
-	// check Gin envs
-	utils.CheckGinModeEnv()
-	// check Postgres envs
-	utils.CheckPostgresEnvs()
 	// Postgres database
-	connStr := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("POSTGRES_SERVER") + ":" + os.Getenv("POSTGRES_PORT") + "/" + os.Getenv("POSTGRES_DB")
-	postgres, err := gorm.Open(postgres.Open(connStr), &gorm.Config{Logger: logger.Default.LogMode(utils.GetGormLogLevel())})
+	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s",
+		singleton.Config.PostgresUser,
+		singleton.Config.PostgresPassword,
+		singleton.Config.PostgresServer,
+		singleton.Config.PostgresPort,
+		singleton.Config.PostgresDb,
+	)
+	postgres, err := gorm.Open(postgres.Open(connStr), &gorm.Config{Logger: logger.Default.LogMode(singleton.Config.GetGormLogLevel())})
 	if err != nil {
 		log.Fatal(err)
 	}
 	// database schema migration
-	err = postgres.AutoMigrate(&models.User{}, &models.Tracker{}, &models.GNSSData{})
+	err = postgres.AutoMigrate(
+		&models.User{},
+		&models.Tracker{},
+		&models.GNSSData{},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// set database client in singleton
-	singleton := utils.GetSingleton()
 	singleton.PostgresDb = *postgres
-	// superuser envs
-	utils.CheckSuperuserEnvs()
 	// check if superuser exists
-	exists, _ := database.UserExistsByUsername(os.Getenv("SUPERUSER_USERNAME"))
+	exists, _ := database.UserExistsByUsername(singleton.Config.SuperuserUsername)
 	if !exists {
 		// create superuser
-		u, _ := models.NewUser(os.Getenv("SUPERUSER_USERNAME"), os.Getenv("SUPERUSER_PASSWORD"), true)
+		u, _ := models.NewUser(singleton.Config.SuperuserUsername, singleton.Config.SuperuserPassword, true)
 		err = database.CreateSuperuser(*u)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	// access token envs
-	utils.CheckTokenEnvs()
 
 	// get Socket.IO instance
 	socketio := routes.NewSocketIOServer()

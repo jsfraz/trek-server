@@ -3,7 +3,6 @@ package middlewares
 import (
 	"jsfraz/trek-server/database"
 	"jsfraz/trek-server/utils"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +14,7 @@ import (
 //	@param c Gin context
 func Auth(c *gin.Context) {
 	// get access token from context
-	userId, err := utils.TokenValid(utils.ExtractTokenFromContext(c), os.Getenv("ACCESS_TOKEN_SECRET"))
+	userId, err := utils.TokenValid(utils.ExtractTokenFromContext(c), utils.GetSingleton().Config.AccessTokenSecret)
 	// invalid token
 	if err != nil {
 		c.AbortWithStatus(401)
