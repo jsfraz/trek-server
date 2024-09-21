@@ -66,7 +66,7 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 	}
 	// not found
 	if !exists {
-		c.AbortWithStatus(500)
+		c.AbortWithStatus(404)
 		return nil, errors.New("tracker does not exist")
 	}
 	// update
@@ -149,7 +149,7 @@ func UpdateTrackerName(c *gin.Context, request *models.UpdateTrackerName) error 
 	}
 	// not found
 	if !exists {
-		c.AbortWithStatus(500)
+		c.AbortWithStatus(404)
 		return errors.New("tracker does not exist")
 	}
 	// update

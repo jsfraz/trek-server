@@ -7,10 +7,10 @@ import (
 )
 
 type GNSSFromTo struct {
-	Id     uint64 `query:"id" validate:"required"`
-	From   string `query:"from" validate:"required"`
-	To     string `query:"to" validate:"required"`
-	Offset int    `query:"offset" validate:"min=1,max=300"`
+	Id      uint64 `query:"id" validate:"required"`
+	FromUtc string `query:"fromUtc" validate:"required"`
+	ToUtc   string `query:"toUtc" validate:"required"`
+	Offset  int    `query:"offset" validate:"min=1,max=3600,required"`
 }
 
 // Validate timestamps.
@@ -19,13 +19,13 @@ type GNSSFromTo struct {
 //	@return error
 func (g GNSSFromTo) ValidateTimestamps() (*time.Time, *time.Time, error) {
 	// timestamp validation
-	from, err := utils.ParseISO8601String(g.From)
+	from, err := utils.ParseISO8601String(g.FromUtc)
 	if err != nil {
-		return nil, nil, errors.New("Invalid ISO 8601 timestamp: '" + g.From + "'")
+		return nil, nil, errors.New("invalid ISO 8601 timestamp: '" + g.FromUtc + "'")
 	}
-	to, err := utils.ParseISO8601String(g.To)
+	to, err := utils.ParseISO8601String(g.ToUtc)
 	if err != nil {
-		return nil, nil, errors.New("Invalid ISO 8601 timestamp: '" + g.To + "'")
+		return nil, nil, errors.New("invalid ISO 8601 timestamp: '" + g.ToUtc + "'")
 	}
 	// check if from is after to
 	toAfterFrom := to.After(*from)
