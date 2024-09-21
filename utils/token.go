@@ -4,8 +4,6 @@ package utils
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,18 +18,17 @@ import (
 //	@return error
 func GenerateAccessToken(id uint64) (string, error) {
 	// token lifespan
-	lifespan, _ := strconv.Atoi(os.Getenv("ACCESS_TOKEN_LIFESPAN"))
 	// payload
 	now := time.Now()
 	claims := jwt.MapClaims{}
 	claims["sub"] = id
-	claims["exp"] = now.Add(time.Second * time.Duration(lifespan)).Unix()
+	claims["exp"] = now.Add(time.Second * time.Duration(GetSingleton().Config.AccessTokenLifespan)).Unix()
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// create and sign token
-	return token.SignedString([]byte(os.Getenv("ACCESS_TOKEN_SECRET")))
+	return token.SignedString([]byte(GetSingleton().Config.AccessTokenSecret))
 }
 
 // Check if the token is valid.
@@ -83,5 +80,5 @@ func GenerateTrackerToken(id uint64) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// create and sign token
-	return token.SignedString([]byte(os.Getenv("TRACKER_TOKEN_SECRET")))
+	return token.SignedString([]byte(GetSingleton().Config.TrackerTokenSecret))
 }

@@ -24,7 +24,7 @@ func GetAllGNSSRecords(c *gin.Context, request *models.GNSSAll) (*models.GNSSDat
 	}
 	// not found
 	if !exists {
-		c.AbortWithStatus(500)
+		c.AbortWithStatus(404)
 		return nil, errors.New("tracker does not exist")
 	}
 	// get data
@@ -52,7 +52,7 @@ func GetGNSSRecordsByTimestamps(c *gin.Context, request *models.GNSSFromTo) (*mo
 	}
 	// not found
 	if !exists {
-		c.AbortWithStatus(500)
+		c.AbortWithStatus(404)
 		return nil, errors.New("tracker does not exist")
 	}
 	// validate timestamps

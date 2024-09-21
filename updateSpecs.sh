@@ -1,0 +1,2 @@
+#!/bin/sh
+wget http://localhost:8080/api/openapi.json -O openapi.json

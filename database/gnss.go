@@ -45,16 +45,16 @@ func GetAllGNSSRecords(trackerId uint64, offset int) (*models.GNSSDataSummary, e
 	if offset > 1 {
 		// offset is greater than 1
 		query := fmt.Sprintf(`
-		SELECT *
-		FROM (
-			SELECT *,
-				   ROW_NUMBER() OVER (ORDER BY timestamp ASC) AS row_num
-			FROM "gnss_data"
-			WHERE tracker_id = 1
-		) AS numbered_rows
-		WHERE row_num %% %d = 1
-		ORDER BY timestamp ASC;
-	`, offset)
+				SELECT *
+				FROM (
+					SELECT *,
+						   ROW_NUMBER() OVER (ORDER BY timestamp ASC) AS row_num
+					FROM "gnss_data"
+					WHERE tracker_id = %d
+				) AS numbered_rows
+				WHERE row_num %% %d = 1
+				ORDER BY timestamp ASC;
+			`, trackerId, offset)
 		err = utils.GetSingleton().PostgresDb.Raw(query).Scan(&data).Error
 	} else {
 		// no offset
@@ -102,13 +102,13 @@ func GetGNSSRecordsByTimestamps(trackerId uint64, from time.Time, to time.Time, 
 			SELECT *,
 				   ROW_NUMBER() OVER (ORDER BY timestamp ASC) AS row_num
 			FROM "gnss_data"
-			WHERE tracker_id = 1
+			WHERE tracker_id = %d
 				AND timestamp >= '%s'
 				AND timestamp <= '%s'
 		) AS numbered_rows
 		WHERE row_num %% %d = 1
 		ORDER BY timestamp ASC;
-	`, from.Format("2006-01-02 15:04:05.999"), to.Format("2006-01-02 15:04:05.999"), offset)
+	`, trackerId, from.Format("2006-01-02 15:04:05.999"), to.Format("2006-01-02 15:04:05.999"), offset)
 		err = utils.GetSingleton().PostgresDb.Raw(query).Scan(&data).Error
 	} else {
 		// no offset

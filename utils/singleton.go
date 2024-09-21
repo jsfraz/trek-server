@@ -6,6 +6,7 @@ import (
 
 // https://blog.devgenius.io/singleton-pattern-in-go-4faea607ad0f
 type Singleton struct {
+	Config     *Config
 	PostgresDb gorm.DB
 }
 

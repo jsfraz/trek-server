@@ -7,7 +7,6 @@ import (
 	"jsfraz/trek-server/utils"
 	"log"
 	"net/url"
-	"os"
 
 	socketio "github.com/googollee/go-socket.io"
 )
@@ -24,7 +23,7 @@ func SocketConnect(s socketio.Conn) error {
 	}
 	// extract the apiKey value
 	apiKey := queryValues.Get("apiKey")
-	trackerId, err := utils.TokenValid(apiKey, os.Getenv("TRACKER_TOKEN_SECRET"))
+	trackerId, err := utils.TokenValid(apiKey, utils.GetSingleton().Config.TrackerTokenSecret)
 	// token není platný
 	if err != nil {
 		return err
