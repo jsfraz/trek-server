@@ -89,13 +89,6 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 //	@return *[]models.Tracker
 //	@return error
 func GetAllTrackers(c *gin.Context) (*[]models.Tracker, error) {
-	// check for superuser
-	u, _ := c.Get("user")
-	user := u.(*models.User)
-	if !user.Superuser {
-		c.AbortWithStatus(401)
-		return nil, errors.New("user is not superuser")
-	}
 	// get trackers
 	trackers, err := database.GetAllTrackers()
 	if err != nil {
