@@ -19,7 +19,7 @@ type GNSSDataInput struct {
 //	@param mapData
 //	@return *GNSSData
 //	@return error
-func ParseMap(mapData map[string]interface{}) (*GNSSDataInput, error) {
+func ParseMapToGnssDataInput(mapData map[string]interface{}) (*GNSSDataInput, error) {
 	var data GNSSDataInput
 	errStr := "invalid field: "
 	// iterate trough values

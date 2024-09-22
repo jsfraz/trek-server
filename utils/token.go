@@ -3,6 +3,9 @@ package utils
 // https://seefnasrul.medium.com/create-your-first-go-rest-api-with-jwt-authentication-in-gin-framework-dbe5bda72817
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -22,6 +25,7 @@ func GenerateAccessToken(id uint64) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{}
 	claims["sub"] = id
+	claims["type"] = "user"
 	claims["exp"] = now.Add(time.Second * time.Duration(GetSingleton().Config.AccessTokenLifespan)).Unix()
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
@@ -75,10 +79,40 @@ func GenerateTrackerToken(id uint64) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{}
 	claims["sub"] = id
+	claims["type"] = "tracker"
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// create and sign token
 	return token.SignedString([]byte(GetSingleton().Config.TrackerTokenSecret))
+}
+
+// Return token claim "type".
+//
+//	@param token
+//	@return string
+//	@return error
+func GetTokenType(token string) (string, error) {
+	// Get parts
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("invalid token format")
+	}
+	// Get payload
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", err
+	}
+	// Get claims
+	var claims map[string]interface{}
+	err = json.Unmarshal(payload, &claims)
+	if err != nil {
+		return "", err
+	}
+	// Check type
+	if claims["type"] == nil {
+		return "", errors.New("token type not set")
+	}
+	return claims["type"].(string), nil
 }

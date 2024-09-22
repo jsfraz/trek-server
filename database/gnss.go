@@ -220,3 +220,22 @@ func getMaxSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64,
 	}
 	return speed, nil
 }
+
+// Get first GNSS record created max 1,25 seconds ago.
+//
+//	@param trackerId
+//	@return *models.GNSSData
+//	@return error
+func GetCurrentGNSSData(trackerId uint64) (*models.GNSSData, error) {
+	var data models.GNSSData
+	duration := time.Duration(1.25 * float64(time.Second))
+	err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Where("timestamp > ? AND tracker_id = ?", time.Now().Add(-duration).Format("2006-01-02 15:04:05.999"), trackerId).First(&data).Error
+	// Cancel error if record was not found so nil can be returned.
+	if err.Error() == "record not found" {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
