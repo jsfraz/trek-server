@@ -80,7 +80,12 @@ func GetAllGNSSRecords(trackerId uint64, offset int) (*models.GNSSDataSummary, e
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(data, min, avg, max), nil
+	// Distance
+	distance, err := getDistance(trackerId)
+	if err != nil {
+		return nil, err
+	}
+	return models.NewGNSSDataSummary(data, min, avg, max, distance), nil
 }
 
 // Get GNSS records by tracker ID and timestamps.
@@ -134,7 +139,12 @@ func GetGNSSRecordsByTimestamps(trackerId uint64, from time.Time, to time.Time, 
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(data, min, avg, max), nil
+	// Distance
+	distance, err := getDistanceFromTo(trackerId, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return models.NewGNSSDataSummary(data, min, avg, max, distance), nil
 }
 
 // Get min speed.
@@ -238,4 +248,68 @@ func GetCurrentGNSSData(trackerId uint64) (*models.GNSSData, error) {
 		return nil, err
 	}
 	return &data, nil
+}
+
+// Get total distance between points.
+//
+//	@param trackerId
+//	@return *float64
+//	@return error
+func getDistance(trackerId uint64) (*float64, error) {
+	var distance *float64
+	query := fmt.Sprintf(`
+	WITH distance_calc AS (
+  		SELECT 
+    		tracker_id,
+    		ST_DistanceSphere(
+      			ST_MakePoint(lag(longitude) OVER (PARTITION BY tracker_id ORDER BY timestamp), 
+                   			lag(latitude) OVER (PARTITION BY tracker_id ORDER BY timestamp)),
+      			ST_MakePoint(longitude, latitude)
+    		) AS point_distance
+  		FROM gnss_data
+  		WHERE tracker_id = %d
+		)
+		SELECT 
+  			SUM(point_distance) / 1000 AS total_distance_km
+		FROM distance_calc
+		GROUP BY tracker_id;`, trackerId)
+	err := utils.GetSingleton().PostgresDb.Raw(query).Scan(&distance).Error
+	// error
+	if err != nil {
+		return nil, err
+	}
+	return distance, nil
+}
+
+// Get total distance between points.
+//
+//	@param trackerId
+//	@param from
+//	@param to
+//	@return *float64
+//	@return error
+func getDistanceFromTo(trackerId uint64, from time.Time, to time.Time) (*float64, error) {
+	var distance *float64
+	query := fmt.Sprintf(`
+	WITH distance_calc AS (
+  		SELECT 
+    		tracker_id,
+    		ST_DistanceSphere(
+      			ST_MakePoint(lag(longitude) OVER (PARTITION BY tracker_id ORDER BY timestamp), 
+                   			lag(latitude) OVER (PARTITION BY tracker_id ORDER BY timestamp)),
+      			ST_MakePoint(longitude, latitude)
+    		) AS point_distance
+  		FROM gnss_data
+  		WHERE tracker_id = %d AND timestamp >= '%s' AND timestamp <= '%s'
+		)
+		SELECT 
+  			SUM(point_distance) / 1000 AS total_distance_km
+		FROM distance_calc
+		GROUP BY tracker_id;`, trackerId, from.Format("2006-01-02 15:04:05.999"), to.Format("2006-01-02 15:04:05.999"))
+	err := utils.GetSingleton().PostgresDb.Raw(query).Scan(&distance).Error
+	// error
+	if err != nil {
+		return nil, err
+	}
+	return distance, nil
 }

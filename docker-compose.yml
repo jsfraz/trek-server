@@ -4,7 +4,7 @@ services:
 
   # trek-postgres
   trek-postgres:
-    image: postgres:alpine
+    image: postgis/postgis:16-master
     container_name: trek-postgres
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
@@ -39,6 +39,7 @@ services:
       - TRACKER_TOKEN_SECRET=${TRACKER_TOKEN_SECRET}
       - SUPERUSER_USERNAME=${SUPERUSER_USERNAME}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+      - CLIENT_URL=${CLIENT_URL}
 
 volumes:
   postgres_data:
