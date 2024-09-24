@@ -80,7 +80,12 @@ func GetAllGNSSRecords(trackerId uint64, offset int) (*models.GNSSDataSummary, e
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(trackerId, data, min, avg, max), nil
+	// Distance
+	distance, err := getDistance(trackerId)
+	if err != nil {
+		return nil, err
+	}
+	return models.NewGNSSDataSummary(data, min, avg, max, distance), nil
 }
 
 // Get GNSS records by tracker ID and timestamps.
@@ -134,18 +139,23 @@ func GetGNSSRecordsByTimestamps(trackerId uint64, from time.Time, to time.Time, 
 	if err != nil {
 		return nil, err
 	}
-	return models.NewGNSSDataSummary(trackerId, data, min, avg, max), nil
+	// Distance
+	distance, err := getDistanceFromTo(trackerId, from, to)
+	if err != nil {
+		return nil, err
+	}
+	return models.NewGNSSDataSummary(data, min, avg, max, distance), nil
 }
 
 // Get min speed.
 //
 //	@param trackerId
-//	@return float64
+//	@return *float64
 //	@return error
-func getMinSpeed(trackerId uint64) (float64, error) {
-	var speed float64
+func getMinSpeed(trackerId uint64) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("MIN(speed)").Where("tracker_id = ?", trackerId).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
 }
@@ -153,12 +163,12 @@ func getMinSpeed(trackerId uint64) (float64, error) {
 // Get avg speed.
 //
 //	@param trackerId
-//	@return float64
+//	@return *float64
 //	@return error
-func getAvgSpeed(trackerId uint64) (float64, error) {
-	var speed float64
+func getAvgSpeed(trackerId uint64) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("AVG(speed)").Where("tracker_id = ?", trackerId).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
 }
@@ -166,12 +176,12 @@ func getAvgSpeed(trackerId uint64) (float64, error) {
 // Get max speed.
 //
 //	@param trackerId
-//	@return float64
+//	@return *float64
 //	@return error
-func getMaxSpeed(trackerId uint64) (float64, error) {
-	var speed float64
+func getMaxSpeed(trackerId uint64) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("MAX(speed)").Where("tracker_id = ?", trackerId).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
 }
@@ -181,12 +191,12 @@ func getMaxSpeed(trackerId uint64) (float64, error) {
 //	@param trackerId
 //	@param from
 //	@param to
-//	@return float64
+//	@return *float64
 //	@return error
-func getMinSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64, error) {
-	var speed float64
+func getMinSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("MIN(speed)").Where("tracker_id = ? AND timestamp >= ? AND timestamp <= ?", trackerId, from, to).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
 }
@@ -196,12 +206,12 @@ func getMinSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64,
 //	@param trackerId
 //	@param from
 //	@param to
-//	@return float64
+//	@return *float64
 //	@return error
-func getAvgSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64, error) {
-	var speed float64
+func getAvgSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("AVG(speed)").Where("tracker_id = ? AND timestamp >= ? AND timestamp <= ?", trackerId, from, to).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
 }
@@ -211,12 +221,95 @@ func getAvgSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64,
 //	@param trackerId
 //	@param from
 //	@param to
-//	@return float64
+//	@return *float64
 //	@return error
-func getMaxSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (float64, error) {
-	var speed float64
+func getMaxSpeedFromTo(trackerId uint64, from time.Time, to time.Time) (*float64, error) {
+	var speed *float64
 	if err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Select("MAX(speed)").Where("tracker_id = ? AND timestamp >= ? AND timestamp <= ?", trackerId, from, to).Scan(&speed).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 	return speed, nil
+}
+
+// Get first GNSS record created max 1,25 seconds ago.
+//
+//	@param trackerId
+//	@return *models.GNSSData
+//	@return error
+func GetCurrentGNSSData(trackerId uint64) (*models.GNSSData, error) {
+	var data models.GNSSData
+	duration := time.Duration(1.25 * float64(time.Second))
+	err := utils.GetSingleton().PostgresDb.Model(&models.GNSSData{}).Where("timestamp > ? AND tracker_id = ?", time.Now().UTC().Add(-duration).Format("2006-01-02 15:04:05.999"), trackerId).First(&data).Error
+	// Cancel error if record was not found so nil can be returned.
+	if err != nil {
+		if err.Error() == "record not found" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &data, nil
+}
+
+// Get total distance between points.
+//
+//	@param trackerId
+//	@return *float64
+//	@return error
+func getDistance(trackerId uint64) (*float64, error) {
+	var distance *float64
+	query := fmt.Sprintf(`
+	WITH distance_calc AS (
+  		SELECT 
+    		tracker_id,
+    		ST_DistanceSphere(
+      			ST_MakePoint(lag(longitude) OVER (PARTITION BY tracker_id ORDER BY timestamp), 
+                   			lag(latitude) OVER (PARTITION BY tracker_id ORDER BY timestamp)),
+      			ST_MakePoint(longitude, latitude)
+    		) AS point_distance
+  		FROM gnss_data
+  		WHERE tracker_id = %d
+		)
+		SELECT 
+  			SUM(point_distance) / 1000 AS total_distance_km
+		FROM distance_calc
+		GROUP BY tracker_id;`, trackerId)
+	err := utils.GetSingleton().PostgresDb.Raw(query).Scan(&distance).Error
+	// error
+	if err != nil {
+		return nil, err
+	}
+	return distance, nil
+}
+
+// Get total distance between points.
+//
+//	@param trackerId
+//	@param from
+//	@param to
+//	@return *float64
+//	@return error
+func getDistanceFromTo(trackerId uint64, from time.Time, to time.Time) (*float64, error) {
+	var distance *float64
+	query := fmt.Sprintf(`
+	WITH distance_calc AS (
+  		SELECT 
+    		tracker_id,
+    		ST_DistanceSphere(
+      			ST_MakePoint(lag(longitude) OVER (PARTITION BY tracker_id ORDER BY timestamp), 
+                   			lag(latitude) OVER (PARTITION BY tracker_id ORDER BY timestamp)),
+      			ST_MakePoint(longitude, latitude)
+    		) AS point_distance
+  		FROM gnss_data
+  		WHERE tracker_id = %d AND timestamp >= '%s' AND timestamp <= '%s'
+		)
+		SELECT 
+  			SUM(point_distance) / 1000 AS total_distance_km
+		FROM distance_calc
+		GROUP BY tracker_id;`, trackerId, from.Format("2006-01-02 15:04:05.999"), to.Format("2006-01-02 15:04:05.999"))
+	err := utils.GetSingleton().PostgresDb.Raw(query).Scan(&distance).Error
+	// error
+	if err != nil {
+		return nil, err
+	}
+	return distance, nil
 }

@@ -23,6 +23,8 @@ func NewRouter() (*fizz.Fizz, error) {
 	config.AllowCredentials = true
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 	engine.Use(cors.New(config))
+	// Another cors setting because SocketIO is getting error, idk why :)
+	engine.Use(middlewares.Cors())
 
 	// html
 	engine.LoadHTMLGlob("html/*.html")
@@ -83,7 +85,6 @@ func NewRouter() (*fizz.Fizz, error) {
 	AuthRoute(grp)
 	UserRoute(grp)
 	TrackerRoute(grp)
-	// TODO GNSS data
 
 	if len(fizz.Errors()) != 0 {
 		return nil, fmt.Errorf("errors: %v", fizz.Errors())

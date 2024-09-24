@@ -24,13 +24,7 @@ func InsertTracker(tracker models.Tracker) (*models.TrackerToken, error) {
 		tx.Rollback() // rollback the transaction if an error occurs
 		return nil, err
 	}
-	// update token
-	tracker.Token = token
-	if err := tx.Save(&tracker).Error; err != nil {
-		tx.Rollback() // rollback the transaction if an error occurs
-		return nil, err
-	}
-	return models.NewTrackerToken(tracker.Token), tx.Commit().Error
+	return models.NewTrackerToken(token), tx.Commit().Error
 }
 
 // Check if tracker with given name exists.
@@ -73,22 +67,6 @@ func GetTrackerById(id uint64) (*models.Tracker, error) {
 		return nil, err
 	}
 	return &tracker, nil
-}
-
-// Set tracker token.
-//
-//	@param trackerId
-//	@param token
-//	@return error
-func SetTrackerToken(trackerId uint64, token string) error {
-	var tracker models.Tracker
-	err := utils.GetSingleton().PostgresDb.Model(&models.Tracker{}).Where("id = ?", trackerId).First(&tracker).Error
-	if err != nil {
-		return err
-	}
-	// update
-	tracker.Token = token
-	return utils.GetSingleton().PostgresDb.Save(&tracker).Error
 }
 
 // Get all trackers.

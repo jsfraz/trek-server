@@ -69,13 +69,8 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 		c.AbortWithStatus(404)
 		return nil, errors.New("tracker does not exist")
 	}
-	// update
+	// regenerate
 	token, err := utils.GenerateTrackerToken(request.Id)
-	if err != nil {
-		c.AbortWithStatus(500)
-		return nil, err
-	}
-	err = database.SetTrackerToken(request.Id, token)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return nil, err
@@ -89,13 +84,6 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 //	@return *[]models.Tracker
 //	@return error
 func GetAllTrackers(c *gin.Context) (*[]models.Tracker, error) {
-	// check for superuser
-	u, _ := c.Get("user")
-	user := u.(*models.User)
-	if !user.Superuser {
-		c.AbortWithStatus(401)
-		return nil, errors.New("user is not superuser")
-	}
 	// get trackers
 	trackers, err := database.GetAllTrackers()
 	if err != nil {

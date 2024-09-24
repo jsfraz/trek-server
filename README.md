@@ -17,6 +17,7 @@ Trek backend for tracking your motorcycles or whatever.
 | TRACKER_TOKEN_SECRET  | ...long text...     |
 | SUPERUSER_USERNAME    | root                |
 | SUPERUSER_PASSWORD    | 12345678            |
+| CLIENT_URL            | Client URL for CORS |
 
 ## Deploying using Nginx reverse proxy
 

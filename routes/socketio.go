@@ -17,6 +17,8 @@ func NewSocketIOServer() *socketio.Server {
 	server.OnConnect("/", handlers.SocketConnect)
 	// send GNSS data event
 	server.OnEvent("/", "sendCurrent", handlers.SendCurrentEvent)
+	// Get current GNSS data event
+	server.OnEvent("/", "getCurrent", handlers.GetCurrentEvent)
 	// error
 	server.OnError("/", func(s socketio.Conn, err error) {
 		log.Printf("Error: %s",
