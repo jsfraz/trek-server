@@ -23,6 +23,8 @@ func NewRouter() (*fizz.Fizz, error) {
 	config.AllowCredentials = true
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 	engine.Use(cors.New(config))
+	// Another cors setting because SocketIO is getting error, idk why :)
+	engine.Use(middlewares.Cors())
 
 	// html
 	engine.LoadHTMLGlob("html/*.html")

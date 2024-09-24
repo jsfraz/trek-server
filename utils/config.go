@@ -29,6 +29,9 @@ type Config struct {
 	// Superuser
 	SuperuserUsername string `envconfig:"SUPERUSER_USERNAME" required:"true"`
 	SuperuserPassword string `envconfig:"SUPERUSER_PASSWORD" required:"true"`
+
+	// Client URL for cors
+	ClientUrl string `envconfig:"CLIENT_URL" default:"http://localhost:4200"`
 }
 
 // Returns config from ENV values.

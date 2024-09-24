@@ -69,13 +69,8 @@ func RegenerateTrackerToken(c *gin.Context, request *models.Id) (*models.Tracker
 		c.AbortWithStatus(404)
 		return nil, errors.New("tracker does not exist")
 	}
-	// update
+	// regenerate
 	token, err := utils.GenerateTrackerToken(request.Id)
-	if err != nil {
-		c.AbortWithStatus(500)
-		return nil, err
-	}
-	err = database.SetTrackerToken(request.Id, token)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return nil, err
