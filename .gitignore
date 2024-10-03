@@ -1,3 +1,5 @@
 # .vscode/
 __debug*
 openapi.json
+.env
+vscode/

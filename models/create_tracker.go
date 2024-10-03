@@ -1,5 +1,6 @@
 package models
 
 type CreateTracker struct {
-	Name string `query:"name" min:"2" max:"32" validate:"required"`
+	// TODO json instead of query
+	Name string `query:"username" validate:"required,min=2,max=32"`
 }

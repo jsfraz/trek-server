@@ -7,6 +7,7 @@ import (
 )
 
 type GNSSFromTo struct {
+	// TODO json instead of query
 	Id      uint64 `query:"id" validate:"required"`
 	FromUtc string `query:"fromUtc" validate:"required"`
 	ToUtc   string `query:"toUtc" validate:"required"`
