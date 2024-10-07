@@ -24,7 +24,6 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - /etc/localtime:/etc/localtime:ro  # sync time
-
     depends_on:
       - trek-postgres
     environment:

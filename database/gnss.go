@@ -250,6 +250,7 @@ func GetCurrentGNSSData(trackerId uint64) (*models.GNSSData, error) {
 	return &data, nil
 }
 
+// TODO ignore gaps
 // Get total distance between points.
 //
 //	@param trackerId
@@ -281,6 +282,7 @@ func getDistance(trackerId uint64) (*float64, error) {
 	return distance, nil
 }
 
+// TODO ignore gaps
 // Get total distance between points.
 //
 //	@param trackerId

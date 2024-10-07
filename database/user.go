@@ -131,12 +131,10 @@ func UpdateUser(id uint64, username string, password string) error {
 	user.Username = username
 	// password
 	if password != "" {
-		if len(password) >= 8 && len(password) <= 64 {
-			err := user.SetPassword(password)
-			// error
-			if err != nil {
-				return err
-			}
+		err := user.SetPassword(password)
+		// error
+		if err != nil {
+			return err
 		}
 	}
 	// update
