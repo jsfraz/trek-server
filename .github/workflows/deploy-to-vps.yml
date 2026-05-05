@@ -1,0 +1,117 @@
+name: Deploy to VPS
+
+# Workflow for automatic deployment of an application to VPS when pushing to the master branch
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Download full history for potential change comparisons
+
+      - name: Setup SSH and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          # Upload files to the server
+          envs: GITHUB_SHA
+          script_stop: true  # Stop executing further commands on error
+          script: |
+            # Check if project directory exists and if it's a git repository
+            export ACTUAL_PATH="${{ secrets.PROJECT_PATH }}/trek-server"
+            if [ -d "$ACTUAL_PATH/.git" ]; then
+              echo "Git repository exists, updating repository..."
+              cd $ACTUAL_PATH
+              git pull origin master
+            else
+              echo "Git repository doesn't exist, setting up from scratch..."
+              # Create PROJECT_PATH if it doesn't exist
+              mkdir -p "$ACTUAL_PATH"
+              cd "$ACTUAL_PATH"
+              
+              # Initialize as git repository and set remote
+              git init
+              git remote add origin https://github.com/jsfraz/trek-server.git
+              
+              # Fetch and checkout master branch
+              git fetch origin master
+              git checkout -f -B master origin/master
+            fi
+            
+            echo "Creating data directory if it doesn't exist..."
+            mkdir -p data
+      
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true  # Stops executing further commands in case of error
+          script: |
+            export ACTUAL_PATH="${{ secrets.PROJECT_PATH }}/trek-server"
+            cd "$ACTUAL_PATH"
+            
+            # Check if docker-compose.yml exists (sanity check)
+            if [ ! -f docker-compose.yml ]; then
+              echo "Error: docker-compose.yml not found in $ACTUAL_PATH"
+              echo "Current directory contents:"
+              ls -la
+              exit 1
+            fi
+
+            # Create .env file
+            echo "Creating .env file..."
+            cat > .env << EOL
+            SERVER_URL=${{ secrets.SERVER_URL }}
+            GIN_MODE=release
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+            ACCESS_TOKEN_LIFESPAN=${{ secrets.ACCESS_TOKEN_LIFESPAN }}
+            TRACKER_TOKEN_SECRET=${{ secrets.TRACKER_TOKEN_SECRET }}
+            SUPERUSER_USERNAME=${{ secrets.SUPERUSER_USERNAME }}
+            SUPERUSER_PASSWORD=${{ secrets.SUPERUSER_PASSWORD }}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
+            EOL
+
+            # Stop running containers
+            echo "Stopping current containers..."
+            docker compose -f docker-compose.yml --env-file .env down || echo "No containers to stop"
+
+            # Build and start containers
+            echo "Building and starting containers..."
+            docker compose -f docker-compose.yml --env-file .env up -d --build
+
+            # Wait for the service to start
+            echo "Waiting for service to start..."
+            sleep 10
+            
+            # Verify containers are running
+            echo "Checking container status..."
+            docker compose -f docker-compose.yml ps
+      
+      - name: Notify Deployment Status
+        # This step will always run to report status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "Deployment completed successfully!"
+          else
+            echo "Deployment failed! Please check logs for details."
+          fi
