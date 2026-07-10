@@ -10,7 +10,7 @@ require (
 	github.com/googollee/go-socket.io v1.7.0
 	github.com/loopfz/gadgeto v0.11.6
 	github.com/wI2L/fizz v0.23.0
-	golang.org/x/crypto v0.51.0
+	golang.org/x/crypto v0.52.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
